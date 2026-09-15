@@ -29,9 +29,14 @@ WELCOME_CHANNEL_ID = int(os.getenv("WELCOME_CHANNEL_ID", "0"))
 # Channel where Kernel will send moderation/watchdog logs
 MOD_LOG_CHANNEL_ID = int(os.getenv("MOD_LOG_CHANNEL_ID", "0"))
 
+# Channel where the rules will be posted
+RULES_CHANNEL_ID = int(os.getenv("RULES_CHANNEL_ID", "0"))
+
+# Role ID for the exec role, used in the rules message
+EXEC_ROLE_ID = int(os.getenv("EXEC_ROLE_ID", "0"))
+
 # File used to remember role/message IDs between restarts
 SETUP_FILE = "role_setup.json"
-
 
 # Watchdog settings
 WATCHDOG_WORDS = [
@@ -1108,6 +1113,129 @@ async def reset_roles(
     )
 
 
+# ============================================================
+# SETUP RULES
+# ============================================================
+
+@bot.tree.command(
+    name="setup_rules",
+    description="Post the UWES server rules."
+)
+@app_commands.checks.has_permissions(
+    administrator=True
+)
+async def setup_rules(
+    interaction: discord.Interaction
+):
+
+    await interaction.response.defer(
+        ephemeral=True
+    )
+
+    if not RULES_CHANNEL_ID:
+
+        await interaction.followup.send(
+            "The rules channel hasn't been configured in `.env`.",
+            ephemeral=True
+        )
+
+        return
+
+    channel = interaction.guild.get_channel(
+        RULES_CHANNEL_ID
+    )
+
+    if channel is None:
+
+        await interaction.followup.send(
+            "I couldn't find the configured rules channel.",
+            ephemeral=True
+        )
+
+        return
+
+    rules_message = (
+        "# 📜 UWES Server Rules\n"
+        "Welcome to the **University of Warwick Electronics Society!**\n\n"
+
+        "## 1. Be welcoming\n"
+        "- Help make UWES a friendly and approachable community for everyone.\n"
+        "## 2. All experience levels are welcome\n"
+        "- Whether you're new to electronics or an experienced engineer, everyone is welcome here.\n"
+        "## 3. Respect everyone\n"
+        "- No discrimination, bullying, harassment, or targeting of others.\n"
+        "## 4. Use the appropriate channels\n"
+        "- Keep discussions relevant to the channel you're using.\n"
+        "## 5. Keep content appropriate\n"
+        "- No NSFW, excessively offensive, or otherwise inappropriate content.\n"
+        "## 6. Respect privacy and personal space\n"
+        "- Don't share someone's personal information, messages, images, or other content without permission.\n"
+        "## 7. Disagree respectfully\n"
+        "- Technical disagreements are fine, but keep discussions constructive and avoid personal attacks.\n"
+        "## 8. Take safety seriously\n"
+        "- Be responsible when working with electronics, batteries, high voltages, tools, and other potentially hazardous equipment.\n"
+        "## 9. Clean up after yourself\n"
+        "- Leave society equipment and spaces clean, organised, and ready for the next person.\n"
+        "## 10. No unsolicited advertising or selling\n"
+        "- Don't advertise products, services, servers, events, or businesses without permission.\n"
+        "## 11. No illegal or harmful content\n"
+        "- Don't share content that facilitates illegal activity, serious harm, or malicious behaviour.\n\n"
+
+        "## 🛠️ Need help?\n"
+        "Contact **support@uwes.co.uk** or "f"<@&{EXEC_ROLE_ID}>.\n\n"
+
+        "---\n"
+        "*University of Warwick Electronics Society • UWES*"
+    )
+
+    await channel.send(rules_message)
+
+    await interaction.followup.send(
+        "✅ UWES rules have been posted successfully!",
+        ephemeral=True
+    )
+
+
+@setup_rules.error
+async def setup_rules_error(
+    interaction: discord.Interaction,
+    error
+):
+
+    if isinstance(
+        error,
+        app_commands.errors.MissingPermissions
+    ):
+
+        await interaction.response.send_message(
+            "❌ You need Administrator permissions "
+            "to use this command.",
+            ephemeral=True
+        )
+
+    else:
+
+        print(
+            f"setup_rules error: {error}"
+        )
+
+        if interaction.response.is_done():
+
+            await interaction.followup.send(
+                "Something went wrong while posting "
+                "the rules. Check the console.",
+                ephemeral=True
+            )
+
+        else:
+
+            await interaction.response.send_message(
+                "Something went wrong while posting "
+                "the rules. Check the console.",
+                ephemeral=True
+            )
+            
+            
 # ============================================================
 # WELCOME MESSAGE
 # ============================================================
