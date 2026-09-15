@@ -1,0 +1,4 @@
+.env
+role_setup.json
+__pycache__/
+*.pyc
