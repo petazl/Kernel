@@ -9,6 +9,7 @@ import re
 from dotenv import load_dotenv
 
 
+
 # ============================================================
 # CONFIG
 # ============================================================
@@ -44,6 +45,7 @@ WATCHDOG_WORDS = [
     "internships",
     "job",
     "jobs",
+    "enployment",
 ]
 
 WATCHDOG_LIMIT = 3
